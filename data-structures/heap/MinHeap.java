@@ -1,168 +1,99 @@
 public class MinHeap {
-    // Member variables of this class
-    private int[] Heap;
+    private int capacity;
     private int size;
-    private int maxsize;
+    private int[] heap;
 
-    // Initializing front as static with unity
-    private static final int FRONT = 1;
-
-    // Constructor of this class
-    public MinHeap(int maxsize)
+    public MinHeap(int capacity)
     {
-
-        // This keyword refers to current object itself
-        this.maxsize = maxsize;
+        this.capacity = capacity;
         this.size = 0;
-
-        Heap = new int[this.maxsize + 1];
-        Heap[0] = Integer.MIN_VALUE;
+        this.heap = new int[capacity];
     }
 
-    // Method 1
-    // Returning the position of
-    // the parent for the node currently
-    // at pos
-    private int parent(int pos) { return pos / 2; }
+    private int getParentIndex(int pos) { return (pos - 1) / 2; }
+    private int getLeftChildIndex(int pos) { return (2 * pos) + 1; }
+    private int getRightChildIndex(int pos) { return (2 * pos) + 2; }
 
-    // Method 2
-    // Returning the position of the
-    // left child for the node currently at pos
-    private int leftChild(int pos) { return (2 * pos); }
+    private boolean hasParent(int pos) { return getParentIndex(pos) >= 0; }
+    private boolean hasLeftChild(int pos) { return getLeftChildIndex(pos) < size; }
+    private boolean hasRightChild(int pos) { return getRightChildIndex(pos) < size; }
 
-    // Method 3
-    // Returning the position of
-    // the right child for the node currently
-    // at pos
-    private int rightChild(int pos)
+    private int parent(int pos) { return heap[getParentIndex(pos)]; }
+    private int leftChild(int pos) { return heap[getLeftChildIndex(pos)]; }
+    private int rightChild(int pos) { return heap[getRightChildIndex(pos)]; }
+
+    private void swap(int pos1, int pos2)
     {
-        return (2 * pos) + 1;
+        int temp = heap[pos1];
+        heap[pos1] = heap[pos2];
+        heap[pos2] = temp;
     }
 
-    // Method 4
-    // Returning true if the passed
-    // node is a leaf node
-    private boolean isLeaf(int pos)
+    private void ensureExtraCapacity()
     {
-
-        if (pos > (size / 2)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Method 5
-    // To swap two nodes of the heap
-    private void swap(int fpos, int spos)
-    {
-
-        int tmp;
-        tmp = Heap[fpos];
-
-        Heap[fpos] = Heap[spos];
-        Heap[spos] = tmp;
-    }
-
-    // Method 6
-    // To heapify the node at pos
-   private void minHeapify(int pos)
-   {      
-     if(!isLeaf(pos)){
-       int swapPos= pos;
-       // swap with the minimum of the two children
-       // to check if right child exists. Otherwise default value will be '0'
-       // and that will be swapped with parent node. 
-       if(rightChild(pos)<=size)
-          swapPos = Heap[leftChild(pos)]<Heap[rightChild(pos)]?leftChild(pos):rightChild(pos);
-       else
-         swapPos= leftChild(pos);
-       
-       if(Heap[pos]>Heap[leftChild(pos)] || Heap[pos]> Heap[rightChild(pos)]){
-         swap(pos,swapPos);
-         minHeapify(swapPos);
-       }
-       
-     }       
-   }
-
-    // Method 7
-    // To insert a node into the heap
-    public void insert(int element)
-    {
-
-        if (size >= maxsize) {
-            return;
-        }
-
-        Heap[++size] = element;
-        int current = size;
-
-        while (Heap[current] < Heap[parent(current)]) {
-            swap(current, parent(current));
-            current = parent(current);
+        if (size == capacity)
+        {
+            int[] newHeap = new int[capacity * 2];
+            System.arraycopy(heap, 0, newHeap, 0, capacity);
+            heap = newHeap;
+            capacity *= 2;
         }
     }
 
-    // Method 8
-    // To print the contents of the heap
-    public void print()
+    public int peek()
     {
-        for (int i = 1; i <= size / 2; i++) {
+        if (size == 0) throw new IllegalStateException();
+        return heap[0];
+    }
 
-            // Printing the parent and both childrens
-            System.out.print(
-                " PARENT : " + Heap[i]
-                + " LEFT CHILD : " + Heap[2 * i]
-                + " RIGHT CHILD :" + Heap[2 * i + 1]);
+    public int poll()
+    {
+        if (size == 0) throw new IllegalStateException();
+        int min = heap[0];
+        heap[0] = heap[size - 1];
+        size--;
+        heapifyDown();
+        return min;
+    }
 
-            // By here new line is required
-            System.out.println();
+    public void add(int item)
+    {
+        ensureExtraCapacity();
+        heap[size] = item;
+        size++;
+        heapifyUp();
+    }
+
+    private void heapifyUp()
+    {
+        int index = size - 1;
+        while (hasParent(index) && parent(index) > heap[index])
+        {
+            swap(getParentIndex(index), index);
+            index = getParentIndex(index);
         }
     }
 
-    // Method 9
-    // To remove and return the minimum
-    // element from the heap
-    public int remove()
+    private void heapifyDown()
     {
+        int index = 0;
+        while (hasLeftChild(index))
+        {
+            int smallerChildIndex = getLeftChildIndex(index);
+            if (hasRightChild(index) && rightChild(index) < leftChild(index))
+            {
+                smallerChildIndex = getRightChildIndex(index);
+            }
 
-        int popped = Heap[FRONT];
-        Heap[FRONT] = Heap[size--];
-        minHeapify(FRONT);
-
-        return popped;
-    }
-
-    // Method 10
-    // Main driver method
-    public static void main(String[] arg)
-    {
-
-        // Display message
-        System.out.println("The Min Heap is ");
-
-        // Creating object of class in main() method
-        MinHeap minHeap = new MinHeap(7);
-
-        // Inserting element to minHeap
-        // using insert() method
-
-        // Custom input entries
-        minHeap.insert(6);
-        minHeap.insert(3);
-        minHeap.insert(4);
-        minHeap.insert(7);
-        minHeap.insert(1);
-        minHeap.insert(8);
-        minHeap.insert(6);
-
-        // Print all elements of the heap
-        minHeap.print();
-
-        // Removing minimum value from above heap
-        // and printing it
-        System.out.println("The Min val is "
-                           + minHeap.remove());
+            if (heap[index] < heap[smallerChildIndex])
+            {
+                break;
+            }
+            else
+            {
+                swap(index, smallerChildIndex);
+            }
+            index = smallerChildIndex;
+        }
     }
 }
